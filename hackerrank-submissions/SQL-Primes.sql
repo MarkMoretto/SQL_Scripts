@@ -40,7 +40,6 @@ WHILE (@_current <= @_max_count)
 			AND P.X > @_current -- X must be larger than current number given our iterative process
 			AND P.prime_yn = 1 -- Only include X values that have not passed the test yet.
 		) AS QQ
-		BREAK
 
 		SET @_current += 1 -- Update current number 
 
