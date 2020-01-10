@@ -2,10 +2,6 @@
 -- Ref: https://www.hackerrank.com/challenges/sql-projects/problem
 -- Difficulty: Medium
 
-
-USE MyTestDB
-
-
 -- Create Projects table
 DROP TABLE IF EXISTS #_Projects
 
