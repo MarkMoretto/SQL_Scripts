@@ -1,7 +1,7 @@
 -- SQL confusion matrix sampler
 
 -- Date: 2019-02-26
--- Contributor: Mark Moretto (MMorett1@hfhs.org)
+-- Contributor: Mark Moretto
 
 
 SET NOCOUNT ON
@@ -20,12 +20,12 @@ CREATE TABLE #_data (
 Generate random numbers with a Laplace distribution
 
 Basic formula
-	X = � - � * sgn(urn) * ln(1 - (2 * urn))
+	X = a - b * sgn(urn) * ln(1 - (2 * urn))
 
 where:
 	urn = uniform random number
-	� = alpha value
-	� = beta value
+	a = alpha value
+	b = beta value
 	sgn = sign function (in SQL pseudocode):
 		case
 			when x > 0 then 1
@@ -41,7 +41,7 @@ DECLARE @_number_of_records INT = 1000 -- Number of sample records to generate
 DECLARE @_count INT = 1 -- Initialize counter variable.
 DECLARE @_urn_act FLOAT --Uniform random number variable (actual)
 DECLARE @_urn_pred FLOAT --Uniform random number variable (predicted)
-DECLARE @_alpha FLOAT = 0.6 -- Alpha value. (Usually works best 0 < � < 1)
+DECLARE @_alpha FLOAT = 0.6 -- Alpha value. (Usually works best 0 < a < 1)
 DECLARE @_beta FLOAT = 1.0 -- Distribution width.
 
 WHILE @_count <= @_number_of_records
