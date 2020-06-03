@@ -1,7 +1,3 @@
--- SQL confusion matrix sampler
-
--- Date: 2019-02-26
--- Contributor: Mark Moretto
 
 
 SET NOCOUNT ON
@@ -18,10 +14,8 @@ CREATE TABLE #_data (
 
 /**************************************************************************
 Generate random numbers with a Laplace distribution
-
 Basic formula
 	X = a - b * sgn(urn) * ln(1 - (2 * urn))
-
 where:
 	urn = uniform random number
 	a = alpha value
@@ -32,7 +26,6 @@ where:
 			when x < 0 then -1
 			else 0
 		end
-
 Ref: https://en.wikipedia.org/wiki/Laplace_distribution
 *********************************************************************************/
 
@@ -62,7 +55,6 @@ END
 
 /**********************************************************
 Confusion matrix formulae:
-
 			Predicted
 		  Pos.	  Neg.
 Actual	----------------
@@ -70,30 +62,22 @@ Pos.	|  TP	|  FN	|
 		----------------
 Neg.	|  FP	|  TN	|
 		----------------
-
 Accuracy -> Unbiased average of model results
 		(TP + TN)
 	------------------
 	(TP + TN + FP + FN)
-
-
 Recall -> How many positive examples were correctly recognized?
 			TP
 		---------	
 		(TP + FN)
-
-
 Precision -> How many positives are actually positive?
 			TP
 		----------	
 		(TP + FP)
-
-
 F-Measure -> Calculates harmonic mean
 	  (2 * Recall * Precision)
 	 -------------------------
 		(Recall + Precision)
-
 ************************************************************/
 
 
@@ -102,34 +86,10 @@ F-Measure -> Calculates harmonic mean
 -- ### Output method 1 ###
 -- #######################
 ---------------------------------------------------------------------------
--- Tip 1: Subquery until desired results achieved!
--- Tip 2: Don't follow tip 1. We really only need 1 subquery here.  This is setup for illustrative purposes.
-
-SELECT ROUND(Y.[ACC], 4) AS [Accuracy]
-,	ROUND(Y.[RCLL], 4) AS [Recall]
-,	ROUND(Y.[PRCSN], 4) AS [Precision]
-,	ROUND(Y.F_MEAS, 4) AS [F_Measure]
-FROM (
-	SELECT [ACC] = (X.TP + X.TN) / (X.TP + X.TN + X.FP + X.FN)
-	,	[RCLL] = (X.TP / (X.TP + X.FN))
-	,	[PRCSN] = (X.TP / (X.TP + X.FP))
-	,	[F_MEAS] = (2 * (X.TP / (X.TP + X.FN)) * (X.TP / (X.TP + X.FP))) / (X.TP / (X.TP + X.FN)) + (X.TP / (X.TP + X.FP))
-	FROM (
-		SELECT [TP] = CONVERT(FLOAT, SUM(CASE WHEN ACTUAL = '1' AND PREDICTED = '1' THEN 1 ELSE 0 END)) --True Positive (TP): Actual is 1, predicted is 1
-		,	[TN] = CONVERT(FLOAT, SUM(CASE WHEN ACTUAL = '0' AND PREDICTED = '0' THEN 1 ELSE 0 END)) --True Negative (TN): Actual is 0, predicted is 0
-		,	[FP] = CONVERT(FLOAT, SUM(CASE WHEN ACTUAL = '0' AND PREDICTED = '1' THEN 1 ELSE 0 END)) --False Positive (FP): Actual is 0, predicted is 1
-		,	[FN] = CONVERT(FLOAT, SUM(CASE WHEN ACTUAL = '1' AND PREDICTED = '0' THEN 1 ELSE 0 END)) --False Negative (FN): Actual is 1, predicted is 0
-		FROM #_data AS D
-	) AS X
-) AS Y
-
-
-
--- #######################
--- ### Output method 2 ###
--- #######################
----------------------------------------------------------------------------
 -- Reformat data to an actual matrix and output calculated measures below that.
+-- The first two rows and the only two columns will result in a typical confusion
+-- matrix output.
+-- The values below that are the resulting related metrics (precision, recall, F1.)
 
 ;WITH data_tbl AS (
 	SELECT [TP] = CONVERT(FLOAT, SUM(CASE WHEN ACTUAL = '1' AND PREDICTED = '1' THEN 1 ELSE 0 END)) --True Positive (TP): Actual is 1, predicted is 1
@@ -163,7 +123,7 @@ SELECT [''] = 'Precision'
 ,	[ACTUAL_N] = NULL
 FROM data_tbl AS X
 UNION ALL
-SELECT [''] = 'F Measure'
+SELECT [''] = 'F1'
 ,	[ACTUAL_P] = ROUND((2 * (X.TP / (X.TP + X.FN)) * (X.TP / (X.TP + X.FP))) / (X.TP / (X.TP + X.FN)) + (X.TP / (X.TP + X.FP)), 4)
 ,	[ACTUAL_N] = NULL
 FROM data_tbl AS X
@@ -171,7 +131,7 @@ FROM data_tbl AS X
 
 
 -- #######################
--- ### Output method 3 ###
+-- ### Output method 2 ###
 -- #######################
 ------------------------------------------------------------------------------
 -- We can also put each calculation to a variable result for further processing.
@@ -234,3 +194,33 @@ SELECT @_TP, @_TN, @_FP, @_FN
 , ROUND(@_recall, 4) AS [RECALL]
 , ROUND(@_precision, 4) AS [PRECISION]
 , ROUND(@_f_measure, 4) AS [F_MEAS]
+
+
+
+
+
+
+---- #######################
+---- ### Output method 3 ###
+---- #######################
+-----------------------------------------------------------------------------
+---- Tip 1: Subquery until desired results achieved!
+---- Tip 2: Don't follow tip 1. We really only need 1 subquery here.  This is setup for illustrative purposes.
+
+--SELECT ROUND(Y.[ACC], 4) AS [Accuracy]
+--,	ROUND(Y.[RCLL], 4) AS [Recall]
+--,	ROUND(Y.[PRCSN], 4) AS [Precision]
+--,	ROUND(Y.F_MEAS, 4) AS [F_Measure]
+--FROM (
+--	SELECT [ACC] = (X.TP + X.TN) / (X.TP + X.TN + X.FP + X.FN)
+--	,	[RCLL] = (X.TP / (X.TP + X.FN))
+--	,	[PRCSN] = (X.TP / (X.TP + X.FP))
+--	,	[F_MEAS] = (2 * (X.TP / (X.TP + X.FN)) * (X.TP / (X.TP + X.FP))) / (X.TP / (X.TP + X.FN)) + (X.TP / (X.TP + X.FP))
+--	FROM (
+--		SELECT [TP] = CONVERT(FLOAT, SUM(CASE WHEN ACTUAL = '1' AND PREDICTED = '1' THEN 1 ELSE 0 END)) --True Positive (TP): Actual is 1, predicted is 1
+--		,	[TN] = CONVERT(FLOAT, SUM(CASE WHEN ACTUAL = '0' AND PREDICTED = '0' THEN 1 ELSE 0 END)) --True Negative (TN): Actual is 0, predicted is 0
+--		,	[FP] = CONVERT(FLOAT, SUM(CASE WHEN ACTUAL = '0' AND PREDICTED = '1' THEN 1 ELSE 0 END)) --False Positive (FP): Actual is 0, predicted is 1
+--		,	[FN] = CONVERT(FLOAT, SUM(CASE WHEN ACTUAL = '1' AND PREDICTED = '0' THEN 1 ELSE 0 END)) --False Negative (FN): Actual is 1, predicted is 0
+--		FROM #_data AS D
+--	) AS X
+--) AS Y
