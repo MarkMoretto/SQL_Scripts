@@ -1,5 +1,10 @@
 /****** 
 Expand old region table into region-state dimension table.
+
+-- Sample table
+idx  reegion
+0    pacific (WA, OR, ID)
+1    midwest (OH, MI, IL, ID)
 ******/
 
 USE Raytheon
